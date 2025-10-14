@@ -206,7 +206,7 @@ export default function App() {
     </p>
     <ul className="list-disc pl-5 mt-2">
       <li>
-        Cada criança pode ser apadrinhada por até <strong>quatro filhos generosos</strong>.
+        Cada criança pode ser apadrinhada por até <strong>quatro filhos</strong>.
       </li>
       <li>
         <strong>Apadrinhar sozinho(a):</strong> ocupa <strong>4 cotas</strong>.
