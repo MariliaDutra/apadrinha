@@ -121,7 +121,7 @@ export default function App() {
         <div className="rounded-2xl border bg-white p-4 text-sm leading-6 text-neutral-700">
           <p>
             Este é o nosso projeto de apadrinhamento de fim de ano realizado no{" "}
-            <a className="underline" href="https://instagram.com/kilombobaoba" target="_blank" rel="noreferrer">
+            <a className="underline" href="https://instagram.com/kilombo_baoba" target="_blank" rel="noreferrer">
               Kilombo Baobá
             </a>.
             Cada criança pode receber até <strong>4 cotas</strong> de apadrinhamento.
