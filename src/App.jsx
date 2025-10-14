@@ -250,6 +250,14 @@ export default function App() {
                 <div key={kid.kid_id} className="rounded-2xl bg-white p-5 shadow-sm">
                   <div className="flex items-start justify-between">
                     <div>
+                         {/* FOTO DA CRIANÇA */}
+          {kid.foto_url && (
+            <img
+              src={kid.foto_url}
+              alt={`Foto de ${kid.nome}`}
+              className="w-24 h-24 object-cover rounded-full mb-2"
+            />
+          )}
                       <h2 className="text-lg font-semibold">{kid.nome}</h2>
                       <p className="text-sm text-neutral-600">Idade: {kid.idade} anos</p>
                       {kid.brinquedo_desejado && (
