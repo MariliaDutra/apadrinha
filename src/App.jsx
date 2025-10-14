@@ -116,7 +116,28 @@ export default function App() {
         </div>
       </header>
 
-      <main className="max-w-6xl mx-auto px-4 py-8">
+      {/* BLOCO DE EXPLICAÇÃO */}
+      <section className="max-w-6xl mx-auto px-4 pt-6">
+        <div className="rounded-2xl border bg-white p-4 text-sm leading-6 text-neutral-700">
+          <p>
+            Este é o nosso projeto de apadrinhamento de fim de ano realizado no{" "}
+            <a className="underline" href="https://instagram.com/kilombobaoba" target="_blank" rel="noreferrer">
+              Kilombo Baobá
+            </a>.
+            Cada criança pode receber até <strong>4 cotas</strong> de apadrinhamento.
+          </p>
+          <ul className="list-disc pl-5 mt-2">
+            <li><strong>Apadrinhar sozinho(a):</strong> ocupa <strong>4 cotas</strong> (você cobre tudo).</li>
+            <li><strong>Apadrinhar em dupla:</strong> ocupa <strong>2 cotas</strong> (cada pessoa).</li>
+            <li><strong>Apadrinhar em quarteto:</strong> ocupa <strong>1 cota</strong> por pessoa.</li>
+          </ul>
+          <p className="mt-2 text-neutral-600">
+            Quando as 4 cotas de uma criança são preenchidas, ela aparece como <strong>“Criança apadrinhada”</strong>.
+          </p>
+        </div>
+      </section>
+
+      <main className="max-w-6xl mx-auto px-4 py-6">
         {criancas.length === 0 ? (
           <div className="text-sm text-neutral-600">
             Nenhuma criança cadastrada. Cadastre em <strong>Supabase → Table Editor → criancas</strong>.
@@ -142,19 +163,32 @@ export default function App() {
                         {kid.tamanho_sapato && <>👟 Sapato: <span className="font-medium">{kid.tamanho_sapato}</span></>}
                       </div>
                     </div>
-                    <span className="text-xs px-2 py-1 rounded-full bg-neutral-100">{ocupadas}/4</span>
+
+                    {/* Badge à direita */}
+                    {lotado ? (
+                      <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">
+                        Criança apadrinhada
+                      </span>
+                    ) : (
+                      <span className="text-xs px-2 py-1 rounded-full bg-neutral-100">{ocupadas}/4</span>
+                    )}
                   </div>
 
                   {kid.descricao && <p className="mt-3 text-sm text-neutral-700">{kid.descricao}</p>}
 
                   <div className="mt-4 flex justify-end">
-                    <button
-                      onClick={() => abrir(kid)}
-                      className="px-4 py-2 rounded-2xl bg-black text-white disabled:bg-neutral-300"
-                      disabled={lotado}
-                    >
-                      {lotado ? "Limite atingido" : "Detalhes"}
-                    </button>
+                    {lotado ? (
+                      <span className="px-4 py-2 rounded-2xl bg-neutral-200 text-neutral-600 cursor-not-allowed">
+                        Criança apadrinhada
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => abrir(kid)}
+                        className="px-4 py-2 rounded-2xl bg-black text-white"
+                      >
+                        Detalhes
+                      </button>
+                    )}
                   </div>
                 </div>
               );
@@ -172,21 +206,21 @@ export default function App() {
             </div>
 
             <div className="p-4 space-y-4">
-              {/* PRIMEIRO: escolha de cotas */}
+              {/* PRIMEIRO: escolha de cotas com rótulos novos */}
               <div className="p-3 rounded-2xl bg-neutral-50 border">
                 <div className="text-sm font-medium mb-2">Como você quer apadrinhar?</div>
                 <div className="flex flex-col gap-2 text-sm">
                   <label className="flex items-center gap-2">
-                    <input type="radio" name="cotas" value={1} checked={cotas===1} onChange={()=>setCotas(1)} />
-                    1/4 &nbsp;— dividir com outras pessoas
+                    <input type="radio" name="cotas" value={4} checked={cotas===4} onChange={()=>setCotas(4)} />
+                    Apadrinhar sozinho(a) — ocupa 4 cotas
                   </label>
                   <label className="flex items-center gap-2">
                     <input type="radio" name="cotas" value={2} checked={cotas===2} onChange={()=>setCotas(2)} />
-                    2/4 &nbsp;— apadrinhar em dupla
+                    Apadrinhar em dupla — ocupa 2 cotas
                   </label>
                   <label className="flex items-center gap-2">
-                    <input type="radio" name="cotas" value={4} checked={cotas===4} onChange={()=>setCotas(4)} />
-                    4/4 &nbsp;— apadrinhar sozinho(a)
+                    <input type="radio" name="cotas" value={1} checked={cotas===1} onChange={()=>setCotas(1)} />
+                    Apadrinhar em quarteto — ocupa 1 cota
                   </label>
                 </div>
                 <div className="mt-2 text-xs text-neutral-600">
