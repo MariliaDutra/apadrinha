@@ -202,7 +202,7 @@ export default function App() {
             Projeto de apadrinhamento de fim de ano do{" "}
             <a className="underline" href="https://instagram.com/kilombobaoba" target="_blank" rel="noreferrer">
               Kilombo Baobá
-            </a>. Cada criança poderá der aparinhada por até <strong>4 filhos</strong>.
+            </a>. Cada criança poderá der apadrinhada por até <strong>4 filhos</strong>.
           </p>
           <ul className="list-disc pl-5 mt-2">
             <li><strong>Apadrinhar sozinho(a):</strong> ocupa <strong>4 cotas</strong>.</li>
