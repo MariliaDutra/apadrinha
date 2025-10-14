@@ -197,23 +197,35 @@ export default function App() {
 
       {/* Explicação */}
       <section className="max-w-6xl mx-auto px-4 pt-6">
-        <div className="rounded-2xl border bg-white p-4 text-sm leading-6 text-neutral-700">
-          <p>
-            Projeto de apadrinhamento de fim de ano do{" "}
-            <a className="underline" href="https://instagram.com/kilombobaoba" target="_blank" rel="noreferrer">
-              Kilombo Baobá
-            </a>. Cada criança poderá der apadrinhada por até <strong>4 filhos</strong>.
-          </p>
-          <ul className="list-disc pl-5 mt-2">
-            <li><strong>Apadrinhar sozinho(a):</strong> ocupa <strong>4 cotas</strong>.</li>
-            <li><strong>Apadrinhar em dupla:</strong> ocupa <strong>2 cotas</strong> por pessoa (total 4).</li>
-            <li><strong>Apadrinhar em quarteto:</strong> ocupa <strong>1 cota</strong> por pessoa.</li>
-          </ul>
-          <p className="mt-2 text-neutral-600">
-            Quando as 4 cotas são preenchidas, a criança aparece como <strong>“Criança apadrinhada”</strong>.
-          </p>
-        </div>
-      </section>
+  <div className="rounded-2xl border bg-white p-4 text-sm leading-6 text-neutral-700">
+    <p>
+      Neste fim de ano, o <a className="underline" href="https://instagram.com/kilombo_baoba" target="_blank" rel="noreferrer">
+      Kilombo Baobá</a> é novamente nosso parceiro na nossa ação de apadrinhamento! 🌿✨  
+      Nosso <strong>projeto de apadrinhamento</strong> é uma forma especial de presentear e celebrar a infância das crianças de comunidade.
+    </p>
+    <ul className="list-disc pl-5 mt-2">
+      <li>
+        Cada criança pode ser apadrinhada por até <strong>quatro filhos generosos</strong>.
+      </li>
+      <li>
+        <strong>Apadrinhar sozinho(a):</strong> ocupa <strong>4 cotas</strong>.
+      </li>
+      <li>
+        <strong>Apadrinhar em dupla:</strong> 2 cotas por pessoa (total de 4).
+      </li>
+      <li>
+        <strong>Apadrinhar em quarteto:</strong> 1 cota por pessoa.
+      </li>
+    </ul>
+    <p className="mt-2 text-neutral-600">
+      Quando todas as 4 cotas são preenchidas, a criança aparecerá como <strong>“Criança apadrinhada”</strong> — sinalizando que aquela criança já possui padrinhos suficientes.
+    </p>
+    <p className="mt-2">
+      Cada gesto conta. Cada cota é um passo rumo a um final de ano mais cheio de sorrisos.<br/>
+      CEDEM é Umbanda, Umbanda é Solidariedade, Solidariedade é CEDEM.  🧡
+    </p>
+  </div>
+</section>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         {criancas.length === 0 ? (
