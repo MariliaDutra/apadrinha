@@ -6,12 +6,12 @@ const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function App() {
-  // Dados vindos do Supabase
-  const [criancas, setCriancas] = useState([]); // [{kid_id, nome, idade, descricao, tamanho_roupa, tamanho_sapato, brinquedo_desejado, foto_url, observacoes}]
-  const [contagem, setContagem] = useState({}); // { kid_id: totalPadrinhosAtivos }
+  const [criancas, setCriancas] = useState([]);
+  const [contagem, setContagem] = useState({}); // { kid_id: cotas_ocupadas }
+  const [aberta, setAberta] = useState(null);
 
-  // UI/Modal + Form
-  const [aberta, setAberta] = useState(null); // criança selecionada (objeto)
+  // Form
+  const [cotas, setCotas] = useState(1); // 1,2,4
   const [nome, setNome] = useState("");
   const [email, setEmail] = useState("");
   const [tel, setTel] = useState("");
@@ -20,7 +20,7 @@ export default function App() {
   const [ok, setOk] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  // 1) Carrega crianças da tabela `criancas`
+  // Carrega crianças
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
@@ -31,16 +31,16 @@ export default function App() {
     })();
   }, []);
 
-  // 2) Carrega contagem de padrinhos por kid_id (status != cancelado)
+  // Soma de cotas ocupadas por criança
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
         .from("padrinhos")
-        .select("kid_id")
+        .select("kid_id, cotas")
         .neq("status", "cancelado");
       if (!error && data) {
         const c = {};
-        data.forEach((r) => (c[r.kid_id] = (c[r.kid_id] || 0) + 1));
+        data.forEach(r => c[r.kid_id] = (c[r.kid_id] || 0) + (r.cotas || 1));
         setContagem(c);
       }
     })();
@@ -48,7 +48,7 @@ export default function App() {
 
   const abrir = (kid) => {
     setAberta(kid);
-    setNome(""); setEmail(""); setTel(""); setMsg("");
+    setCotas(1); setNome(""); setEmail(""); setTel(""); setMsg("");
     setErro(""); setOk("");
   };
   const fechar = () => setAberta(null);
@@ -56,23 +56,21 @@ export default function App() {
   async function enviar(e) {
     e.preventDefault();
     setErro(""); setOk("");
-
     if (!aberta) return;
     if (!nome.trim() || !email.trim()) {
       setErro("Nome e e-mail são obrigatórios.");
       return;
     }
 
-    // Checagens rápidas no cliente (a regra de ouro está no banco: índice único + limitação via app)
-    const totalAtual = contagem[aberta.kid_id] || 0;
-    if (totalAtual >= 4) {
-      setErro("Esta criança já atingiu o limite de 4 padrinhos.");
+    const ocupadas = contagem[aberta.kid_id] || 0;
+    if (ocupadas + cotas > 4) {
+      setErro(`Restam apenas ${Math.max(0, 4 - ocupadas)}/4 cotas para esta criança.`);
       return;
     }
 
     setEnviando(true);
     try {
-      // Impedir duplicidade do mesmo e-mail na mesma criança
+      // evitar duplicidade (mesmo e-mail na mesma criança, status ativo)
       const { data: dup, error: dupErr } = await supabase
         .from("padrinhos")
         .select("id")
@@ -87,7 +85,6 @@ export default function App() {
         return;
       }
 
-      // Inserir apadrinhamento
       const payload = {
         kid_id: aberta.kid_id,
         nome: nome.trim(),
@@ -95,12 +92,13 @@ export default function App() {
         telefone: tel.trim() || null,
         mensagem: msg.trim() || null,
         status: "ativo",
+        cotas
       };
       const { error: insErr } = await supabase.from("padrinhos").insert(payload);
       if (insErr) throw insErr;
 
       setOk("Obrigado! Registro realizado com sucesso.");
-      setContagem((prev) => ({ ...prev, [aberta.kid_id]: (prev[aberta.kid_id] || 0) + 1 }));
+      setContagem(prev => ({ ...prev, [aberta.kid_id]: (prev[aberta.kid_id] || 0) + cotas }));
     } catch (err) {
       console.error(err);
       setErro("Ocorreu um erro ao registrar. Tente novamente.");
@@ -114,22 +112,20 @@ export default function App() {
       <header className="sticky top-0 z-20 bg-white/80 backdrop-blur border-b">
         <div className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl font-semibold">Apadrinhe uma Criança</h1>
-          <div className="text-sm text-neutral-600">Até 4 padrinhos por criança</div>
+          <div className="text-sm text-neutral-600">Total por criança: 4 cotas</div>
         </div>
       </header>
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         {criancas.length === 0 ? (
           <div className="text-sm text-neutral-600">
-            Nenhuma criança cadastrada ainda. Cadastre em <strong>Supabase → Table Editor → criancas</strong>
-            {" "}ou importe um CSV com as colunas:
-            <code className="ml-1">kid_id,nome,idade,descricao,tamanho_roupa,tamanho_sapato,brinquedo_desejado,foto_url,observacoes</code>.
+            Nenhuma criança cadastrada. Cadastre em <strong>Supabase → Table Editor → criancas</strong>.
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {criancas.map((kid) => {
-              const c = contagem[kid.kid_id] || 0;
-              const lotado = c >= 4;
+            {criancas.map(kid => {
+              const ocupadas = contagem[kid.kid_id] || 0;
+              const lotado = ocupadas >= 4;
               return (
                 <div key={kid.kid_id} className="rounded-2xl bg-white p-5 shadow-sm">
                   <div className="flex items-start justify-between">
@@ -146,12 +142,10 @@ export default function App() {
                         {kid.tamanho_sapato && <>👟 Sapato: <span className="font-medium">{kid.tamanho_sapato}</span></>}
                       </div>
                     </div>
-                    <span className="text-xs px-2 py-1 rounded-full bg-neutral-100">{c}/4</span>
+                    <span className="text-xs px-2 py-1 rounded-full bg-neutral-100">{ocupadas}/4</span>
                   </div>
 
-                  {kid.descricao && (
-                    <p className="mt-3 text-sm text-neutral-700">{kid.descricao}</p>
-                  )}
+                  {kid.descricao && <p className="mt-3 text-sm text-neutral-700">{kid.descricao}</p>}
 
                   <div className="mt-4 flex justify-end">
                     <button
@@ -173,13 +167,34 @@ export default function App() {
         <div className="fixed inset-0 z-40 bg-black/30 flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl w-full max-w-xl shadow-xl">
             <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="font-semibold">
-                {aberta.nome} — {aberta.idade} anos
-              </h3>
+              <h3 className="font-semibold">{aberta.nome} — {aberta.idade} anos</h3>
               <button onClick={fechar} className="p-2 hover:bg-neutral-100 rounded-full">✕</button>
             </div>
 
             <div className="p-4 space-y-4">
+              {/* PRIMEIRO: escolha de cotas */}
+              <div className="p-3 rounded-2xl bg-neutral-50 border">
+                <div className="text-sm font-medium mb-2">Como você quer apadrinhar?</div>
+                <div className="flex flex-col gap-2 text-sm">
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="cotas" value={1} checked={cotas===1} onChange={()=>setCotas(1)} />
+                    1/4 &nbsp;— dividir com outras pessoas
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="cotas" value={2} checked={cotas===2} onChange={()=>setCotas(2)} />
+                    2/4 &nbsp;— apadrinhar em dupla
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input type="radio" name="cotas" value={4} checked={cotas===4} onChange={()=>setCotas(4)} />
+                    4/4 &nbsp;— apadrinhar sozinho(a)
+                  </label>
+                </div>
+                <div className="mt-2 text-xs text-neutral-600">
+                  Disponíveis agora: <strong>{Math.max(0, 4 - (contagem[aberta.kid_id] || 0))}/4</strong>
+                </div>
+              </div>
+
+              {/* Dados da criança */}
               {aberta.brinquedo_desejado && (
                 <div className="text-sm">
                   🎁 <strong>Brinquedo desejado:</strong> {aberta.brinquedo_desejado}
@@ -192,9 +207,10 @@ export default function App() {
               {aberta.descricao && <p className="text-sm text-neutral-700">{aberta.descricao}</p>}
 
               <div className="p-3 bg-neutral-50 rounded-2xl text-sm">
-                Padrinhos atuais: <strong>{contagem[aberta.kid_id] || 0}/4</strong>
+                Cotas ocupadas: <strong>{contagem[aberta.kid_id] || 0}/4</strong>
               </div>
 
+              {/* Formulário */}
               <form onSubmit={enviar} className="space-y-3">
                 <div>
                   <label className="text-sm">Seu nome*</label>
@@ -217,7 +233,8 @@ export default function App() {
                 {ok && <div className="text-sm text-green-700">{ok}</div>}
 
                 <div className="flex justify-end">
-                  <button disabled={enviando || (contagem[aberta.kid_id] || 0) >= 4} className="px-4 py-2 rounded-2xl bg-black text-white">
+                  <button disabled={enviando || (contagem[aberta.kid_id] || 0) >= 4}
+                          className="px-4 py-2 rounded-2xl bg-black text-white">
                     {enviando ? "Enviando..." : "Apadrinhar esta criança"}
                   </button>
                 </div>
