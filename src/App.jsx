@@ -283,98 +283,98 @@ export default function App() {
       </main>
 
       {aberta && (
-        <div className="fixed inset-0 z-40 bg-black/30 flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl w-full max-w-xl shadow-xl">
-            <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="font-semibold">{aberta.nome} — {aberta.idade} anos</h3>
-              <button onClick={fechar} className="p-2 hover:bg-neutral-100 rounded-full">✕</button>
+  <div className="fixed inset-0 z-40 bg-black/30 flex items-center justify-center p-4">
+    <div className="bg-white rounded-3xl w-full max-w-xl shadow-xl max-h-[90vh] overflow-y-auto pb-4">
+      <div className="flex items-center justify-between p-4 border-b">
+        <h3 className="font-semibold">{aberta.nome} — {aberta.idade} anos</h3>
+        <button onClick={fechar} className="p-2 hover:bg-neutral-100 rounded-full">✕</button>
+      </div>
+
+      <div className="p-4 space-y-4">
+        {/* Escolha de cotas (com rótulos claros) */}
+        <div className="p-3 rounded-2xl bg-neutral-50 border">
+          <div className="text-sm font-medium mb-2">Como você quer apadrinhar?</div>
+          <div className="flex flex-col gap-2 text-sm">
+            <label className="flex items-center gap-2">
+              <input type="radio" name="cotas" value={4} checked={cotas===4} onChange={()=>setCotas(4)} />
+              Apadrinhar sozinho(a) — ocupa 4 cotas
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" name="cotas" value={2} checked={cotas===2} onChange={()=>setCotas(2)} />
+              Apadrinhar em dupla — ocupa 2 cotas por pessoa (total 4)
+            </label>
+            <label className="flex items-center gap-2">
+              <input type="radio" name="cotas" value={1} checked={cotas===1} onChange={()=>setCotas(1)} />
+              Apadrinhar em quarteto — ocupa 1 cota por pessoa
+            </label>
+          </div>
+          <div className="mt-2 text-xs text-neutral-600">
+            Disponíveis agora: <strong>{Math.max(0, 4 - (contagem[aberta.kid_id] || 0))}/4</strong>
+          </div>
+        </div>
+
+        {/* Quem já está apadrinhando esta criança */}
+        {(padrinhosPorKid[aberta.kid_id]?.length) ? (
+          <div className="mt-3 p-3 rounded-2xl bg-white border text-sm">
+            <div className="font-medium mb-1">Quem já está apadrinhando:</div>
+            <div className="flex flex-wrap gap-2">
+              {padrinhosPorKid[aberta.kid_id].map((p, idx) => (
+                <span key={idx} className="px-2 py-1 rounded-full bg-neutral-100 border text-xs">
+                  {p.nome} · {p.cotas}/4
+                </span>
+              ))}
             </div>
+          </div>
+        ) : null}
 
-            <div className="p-4 space-y-4">
-              {/* Escolha de cotas (com rótulos claros) */}
-              <div className="p-3 rounded-2xl bg-neutral-50 border">
-                <div className="text-sm font-medium mb-2">Como você quer apadrinhar?</div>
-                <div className="flex flex-col gap-2 text-sm">
-                  <label className="flex items-center gap-2">
-                    <input type="radio" name="cotas" value={4} checked={cotas===4} onChange={()=>setCotas(4)} />
-                    Apadrinhar sozinho(a) — ocupa 4 cotas
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="radio" name="cotas" value={2} checked={cotas===2} onChange={()=>setCotas(2)} />
-                    Apadrinhar em dupla — ocupa 2 cotas por pessoa (total 4)
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input type="radio" name="cotas" value={1} checked={cotas===1} onChange={()=>setCotas(1)} />
-                    Apadrinhar em quarteto — ocupa 1 cota por pessoa
-                  </label>
-                </div>
-                <div className="mt-2 text-xs text-neutral-600">
-                  Disponíveis agora: <strong>{Math.max(0, 4 - (contagem[aberta.kid_id] || 0))}/4</strong>
-                </div>
+        {/* Dados da criança */}
+        {aberta.brinquedo_desejado && (
+          <div className="text-sm">
+            🎁 <strong>Brinquedo desejado:</strong> {aberta.brinquedo_desejado}
+          </div>
+        )}
+        <div className="text-sm">
+          {aberta.tamanho_roupa && <>👕 <strong>Tamanho de roupa:</strong> {aberta.tamanho_roupa}<br/></>}
+          {aberta.tamanho_sapato && <>👟 <strong>Tamanho de sapato:</strong> {aberta.tamanho_sapato}</>}
+        </div>
+        {aberta.descricao && <p className="text-sm text-neutral-700">{aberta.descricao}</p>}
+
+        <div className="p-3 bg-neutral-50 rounded-2xl text-sm">
+          Cotas ocupadas: <strong>{contagem[aberta.kid_id] || 0}/4</strong>
+        </div>
+
+        {/* Formulário */}
+        <form onSubmit={enviar} className="space-y-3">
+          <div>
+            <label className="text-sm">Seu nome*</label>
+            <input className="w-full border rounded-xl px-3 py-2" value={nome} onChange={e=>setNome(e.target.value)} placeholder="Ex.: Maria Silva" />
+          </div>
+          <div>
+            <label className="text-sm">E-mail*</label>
+            <input type="email" className="w-full border rounded-xl px-3 py-2" value={email} onChange={e=>setEmail(e.target.value)} placeholder="seu@email.com" />
+          </div>
+          <div>
+            <label className="text-sm">Telefone (obrigatório)</label>
+            <input required className="w-full border rounded-xl px-3 py-2" value={tel} onChange={e=>setTel(e.target.value)} placeholder="(11) 90000-0000" />
+          </div>
+
+          {/* Campos da dupla (apenas quando 2/4) */}
+          {cotas === 2 && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm">Nome da dupla*</label>
+                <input className="w-full border rounded-xl px-3 py-2" value={parceiroNome} onChange={e=>setParceiroNome(e.target.value)} />
               </div>
-
-              {/* Quem já está apadrinhando esta criança */}
-              {(padrinhosPorKid[aberta.kid_id]?.length) ? (
-                <div className="mt-3 p-3 rounded-2xl bg-white border text-sm">
-                  <div className="font-medium mb-1">Quem já está apadrinhando:</div>
-                  <div className="flex flex-wrap gap-2">
-                    {padrinhosPorKid[aberta.kid_id].map((p, idx) => (
-                      <span key={idx} className="px-2 py-1 rounded-full bg-neutral-100 border text-xs">
-                        {p.nome} · {p.cotas}/4
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Dados da criança */}
-              {aberta.brinquedo_desejado && (
-                <div className="text-sm">
-                  🎁 <strong>Brinquedo desejado:</strong> {aberta.brinquedo_desejado}
-                </div>
-              )}
-              <div className="text-sm">
-                {aberta.tamanho_roupa && <>👕 <strong>Tamanho de roupa:</strong> {aberta.tamanho_roupa}<br/></>}
-                {aberta.tamanho_sapato && <>👟 <strong>Tamanho de sapato:</strong> {aberta.tamanho_sapato}</>}
+              <div>
+                <label className="text-sm">E-mail da dupla*</label>
+                <input type="email" className="w-full border rounded-xl px-3 py-2" value={parceiroEmail} onChange={e=>setParceiroEmail(e.target.value)} />
               </div>
-              {aberta.descricao && <p className="text-sm text-neutral-700">{aberta.descricao}</p>}
-
-              <div className="p-3 bg-neutral-50 rounded-2xl text-sm">
-                Cotas ocupadas: <strong>{contagem[aberta.kid_id] || 0}/4</strong>
+              <div>
+                <label className="text-sm">Telefone da dupla*</label>
+                <input className="w-full border rounded-xl px-3 py-2" value={parceiroTel} onChange={e=>setParceiroTel(e.target.value)} placeholder="(11) 90000-0000" />
               </div>
-
-              {/* Formulário */}
-              <form onSubmit={enviar} className="space-y-3">
-                <div>
-                  <label className="text-sm">Seu nome*</label>
-                  <input className="w-full border rounded-xl px-3 py-2" value={nome} onChange={e=>setNome(e.target.value)} placeholder="Ex.: Maria Silva" />
-                </div>
-                <div>
-                  <label className="text-sm">E-mail*</label>
-                  <input type="email" className="w-full border rounded-xl px-3 py-2" value={email} onChange={e=>setEmail(e.target.value)} placeholder="seu@email.com" />
-                </div>
-                <div>
-                  <label className="text-sm">Telefone (obrigatório)</label>
-                  <input required className="w-full border rounded-xl px-3 py-2" value={tel} onChange={e=>setTel(e.target.value)} placeholder="(11) 90000-0000" />
-                </div>
-
-                {/* Campos da dupla (apenas quando 2/4) */}
-                {cotas === 2 && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-sm">Nome da dupla*</label>
-                      <input className="w-full border rounded-xl px-3 py-2" value={parceiroNome} onChange={e=>setParceiroNome(e.target.value)} />
-                    </div>
-                    <div>
-                      <label className="text-sm">E-mail da dupla*</label>
-                      <input type="email" className="w-full border rounded-xl px-3 py-2" value={parceiroEmail} onChange={e=>setParceiroEmail(e.target.value)} />
-                    </div>
-                    <div>
-                      <label className="text-sm">Telefone da dupla*</label>
-                      <input className="w-full border rounded-xl px-3 py-2" value={parceiroTel} onChange={e=>setParceiroTel(e.target.value)} placeholder="(11) 90000-0000" />
-                    </div>
-                  </div>
-                )}
+            </div>
+          )}
 
                 <div>
                   <label className="text-sm">Mensagem (opcional)</label>
