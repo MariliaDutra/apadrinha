@@ -131,10 +131,7 @@ export default function App() {
             <li><strong>Apadrinhar em dupla:</strong> ocupa <strong>2 cotas</strong> (cada pessoa).</li>
             <li><strong>Apadrinhar em quarteto:</strong> ocupa <strong>1 cota</strong> por pessoa.</li>
           </ul>
-          <p className="mt-2 text-neutral-600">
-            Quando as 4 cotas de uma criança são preenchidas, ela aparece como <strong>“Criança apadrinhada”</strong>.
-          </p>
-        </div>
+         </div>
       </section>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
