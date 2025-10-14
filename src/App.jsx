@@ -200,7 +200,8 @@ export default function App() {
   <div className="rounded-2xl border bg-white p-4 text-sm leading-6 text-neutral-700">
     <p>
       Neste fim de ano, o <a className="underline" href="https://instagram.com/kilombo_baoba" target="_blank" rel="noreferrer">
-      Kilombo Baobá</a> é novamente nosso parceiro na nossa ação de apadrinhamento! 🌿✨ <br/> 
+      Kilombo Baobá</a> é novamente nosso parceiro na nossa ação de apadrinhamento! 🌿✨</p>
+    <p>
       Nosso <strong>projeto de apadrinhamento</strong> é uma forma especial de presentear e celebrar a infância das crianças de comunidade.
     </p>
     <ul className="list-disc pl-5 mt-2">
@@ -220,12 +221,18 @@ export default function App() {
     <p className="mt-2 text-neutral-600">
       Quando todas as 4 cotas são preenchidas, a criança aparecerá como <strong>“Criança apadrinhada”</strong> — sinalizando que aquela criança já possui padrinhos suficientes.
     </p>
-    <p className="mt-2">
-      Cada gesto conta. Cada cota é um passo rumo a um final de ano mais cheio de sorrisos.<br/>
-      CEDEM é Umbanda <br/> 
-    Umbanda é Solidariedade</br>  
-        Solidariedade é CEDEM  🧡
-    </p>
+ <p className="mt-2">
+  Cada gesto conta. Cada cota é um passo rumo a um final de ano mais cheio de sorrisos.
+</p>
+<p className="mt-2">
+  CEDEM é Umbanda
+</p>
+<p className="mt-2">
+  Umbanda é Solidariedade
+</p>
+<p className="mt-2">
+  Solidariedade é CEDEM 🧡
+</p>
   </div>
 </section>
 
