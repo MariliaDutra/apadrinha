@@ -7,7 +7,8 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 export default function App() {
   const [criancas, setCriancas] = useState([]);
-  const [contagem, setContagem] = useState({}); // { kid_id: cotas_ocupadas }
+  const [contagem, setContagem] = useState({});              // { kid_id: cotas_ocupadas }
+  const [padrinhosPorKid, setPadrinhosPorKid] = useState({}); // { kid_id: [{nome, cotas}] }
   const [aberta, setAberta] = useState(null);
 
   // Form
@@ -16,11 +17,13 @@ export default function App() {
   const [email, setEmail] = useState("");
   const [tel, setTel] = useState("");
   const [msg, setMsg] = useState("");
+  const [parceiroNome, setParceiroNome] = useState("");
+  const [parceiroEmail, setParceiroEmail] = useState("");
   const [erro, setErro] = useState("");
   const [ok, setOk] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  // Carrega crianças
+  // ---- Carrega crianças
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
@@ -31,24 +34,33 @@ export default function App() {
     })();
   }, []);
 
-  // Soma de cotas ocupadas por criança
+  // ---- Soma de cotas e nomes dos padrinhos (primeiro nome + cotas)
   useEffect(() => {
     (async () => {
       const { data, error } = await supabase
         .from("padrinhos")
-        .select("kid_id, cotas")
+        .select("kid_id, cotas, nome")
         .neq("status", "cancelado");
       if (!error && data) {
         const c = {};
-        data.forEach(r => c[r.kid_id] = (c[r.kid_id] || 0) + (r.cotas || 1));
+        const nomes = {};
+        data.forEach(r => {
+          const ocup = (r.cotas || 1);
+          c[r.kid_id] = (c[r.kid_id] || 0) + ocup;
+          const primeiro = String(r.nome || "").trim().split(" ")[0];
+          if (primeiro) (nomes[r.kid_id] ||= []).push({ nome: primeiro, cotas: ocup });
+        });
         setContagem(c);
+        setPadrinhosPorKid(nomes);
       }
     })();
   }, []);
 
   const abrir = (kid) => {
     setAberta(kid);
-    setCotas(1); setNome(""); setEmail(""); setTel(""); setMsg("");
+    setCotas(1);
+    setNome(""); setEmail(""); setTel(""); setMsg("");
+    setParceiroNome(""); setParceiroEmail("");
     setErro(""); setOk("");
   };
   const fechar = () => setAberta(null);
@@ -57,9 +69,20 @@ export default function App() {
     e.preventDefault();
     setErro(""); setOk("");
     if (!aberta) return;
-    if (!nome.trim() || !email.trim()) {
-      setErro("Nome e e-mail são obrigatórios.");
+
+    // telefone obrigatório (mínimo 10 dígitos com DDD)
+    const telDigits = (tel || "").replace(/\D/g, "");
+    if (!nome.trim() || !email.trim() || telDigits.length < 10) {
+      setErro("Nome, e-mail e telefone (com DDD) são obrigatórios.");
       return;
+    }
+
+    // se em dupla, pedir dados do parceiro
+    if (cotas === 2) {
+      if (!parceiroNome.trim() || !parceiroEmail.trim()) {
+        setErro("Para apadrinhar em dupla, informe nome e e-mail do(a) parceiro(a).");
+        return;
+      }
     }
 
     const ocupadas = contagem[aberta.kid_id] || 0;
@@ -70,7 +93,7 @@ export default function App() {
 
     setEnviando(true);
     try {
-      // evitar duplicidade (mesmo e-mail na mesma criança, status ativo)
+      // impedir duplicidade (mesmo e-mail na mesma criança)
       const { data: dup, error: dupErr } = await supabase
         .from("padrinhos")
         .select("id")
@@ -89,16 +112,25 @@ export default function App() {
         kid_id: aberta.kid_id,
         nome: nome.trim(),
         email: email.toLowerCase().trim(),
-        telefone: tel.trim() || null,
+        telefone: tel.trim(),
         mensagem: msg.trim() || null,
         status: "ativo",
-        cotas
+        cotas,
+        parceiro_nome: cotas === 2 ? parceiroNome.trim() : null,
+        parceiro_email: cotas === 2 ? parceiroEmail.toLowerCase().trim() : null
       };
+
       const { error: insErr } = await supabase.from("padrinhos").insert(payload);
       if (insErr) throw insErr;
 
       setOk("Obrigado! Registro realizado com sucesso.");
+      // atualiza contagem e lista de nomes localmente
       setContagem(prev => ({ ...prev, [aberta.kid_id]: (prev[aberta.kid_id] || 0) + cotas }));
+      setPadrinhosPorKid(prev => {
+        const primeiro = nome.trim().split(" ")[0] || "Padrinho";
+        const arr = [...(prev[aberta.kid_id] || []), { nome: primeiro, cotas }];
+        return { ...prev, [aberta.kid_id]: arr };
+      });
     } catch (err) {
       console.error(err);
       setErro("Ocorreu um erro ao registrar. Tente novamente.");
@@ -116,28 +148,30 @@ export default function App() {
         </div>
       </header>
 
-      {/* BLOCO DE EXPLICAÇÃO */}
+      {/* Explicação */}
       <section className="max-w-6xl mx-auto px-4 pt-6">
         <div className="rounded-2xl border bg-white p-4 text-sm leading-6 text-neutral-700">
           <p>
-            Este é o nosso projeto de apadrinhamento de fim de ano realizado no{" "}
-            <a className="underline" href="https://instagram.com/kilombo_baoba" target="_blank" rel="noreferrer">
+            Projeto de apadrinhamento de fim de ano do{" "}
+            <a className="underline" href="https://instagram.com/kilombobaoba" target="_blank" rel="noreferrer">
               Kilombo Baobá
-            </a>.
-            Cada criança pode receber até <strong>4 cotas</strong> de apadrinhamento.
+            </a>. Cada criança pode receber até <strong>4 cotas</strong>.
           </p>
           <ul className="list-disc pl-5 mt-2">
-            <li><strong>Apadrinhar sozinho(a):</strong> ocupa <strong>4 cotas</strong> (você cobre tudo).</li>
+            <li><strong>Apadrinhar sozinho(a):</strong> ocupa <strong>4 cotas</strong>.</li>
             <li><strong>Apadrinhar em dupla:</strong> ocupa <strong>2 cotas</strong> (cada pessoa).</li>
             <li><strong>Apadrinhar em quarteto:</strong> ocupa <strong>1 cota</strong> por pessoa.</li>
           </ul>
-         </div>
+          <p className="mt-2 text-neutral-600">
+            Quando as 4 cotas são preenchidas, a criança aparece como <strong>“Criança apadrinhada”</strong>.
+          </p>
+        </div>
       </section>
 
       <main className="max-w-6xl mx-auto px-4 py-6">
         {criancas.length === 0 ? (
           <div className="text-sm text-neutral-600">
-            Nenhuma criança cadastrada. Cadastre em <strong>Supabase → Table Editor → criancas</strong>.
+            Nenhuma criança cadastrada.
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -161,7 +195,6 @@ export default function App() {
                       </div>
                     </div>
 
-                    {/* Badge à direita */}
                     {lotado ? (
                       <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 border border-green-200">
                         Criança apadrinhada
@@ -171,6 +204,17 @@ export default function App() {
                     )}
                   </div>
 
+                  {/* chips com quem já apadrinha */}
+                  {(padrinhosPorKid[kid.kid_id]?.length) ? (
+                    <div className="mt-3 flex flex-wrap gap-2 text-xs text-neutral-700">
+                      {padrinhosPorKid[kid.kid_id].map((p, idx) => (
+                        <span key={idx} className="px-2 py-1 rounded-full bg-neutral-100 border">
+                          {p.nome} · {p.cotas}/4
+                        </span>
+                      ))}
+                    </div>
+                  ) : null}
+
                   {kid.descricao && <p className="mt-3 text-sm text-neutral-700">{kid.descricao}</p>}
 
                   <div className="mt-4 flex justify-end">
@@ -179,10 +223,7 @@ export default function App() {
                         Criança apadrinhada
                       </span>
                     ) : (
-                      <button
-                        onClick={() => abrir(kid)}
-                        className="px-4 py-2 rounded-2xl bg-black text-white"
-                      >
+                      <button onClick={() => abrir(kid)} className="px-4 py-2 rounded-2xl bg-black text-white">
                         Detalhes
                       </button>
                     )}
@@ -203,7 +244,7 @@ export default function App() {
             </div>
 
             <div className="p-4 space-y-4">
-              {/* PRIMEIRO: escolha de cotas com rótulos novos */}
+              {/* Escolha de cotas (com rótulos claros) */}
               <div className="p-3 rounded-2xl bg-neutral-50 border">
                 <div className="text-sm font-medium mb-2">Como você quer apadrinhar?</div>
                 <div className="flex flex-col gap-2 text-sm">
@@ -245,19 +286,34 @@ export default function App() {
               <form onSubmit={enviar} className="space-y-3">
                 <div>
                   <label className="text-sm">Seu nome*</label>
-                  <input className="w-full border rounded-xl px-3 py-2" value={nome} onChange={e=>setNome(e.target.value)} placeholder="Ex.: Maria Silva"/>
+                  <input className="w-full border rounded-xl px-3 py-2" value={nome} onChange={e=>setNome(e.target.value)} placeholder="Ex.: Maria Silva" />
                 </div>
                 <div>
                   <label className="text-sm">E-mail*</label>
-                  <input className="w-full border rounded-xl px-3 py-2" value={email} onChange={e=>setEmail(e.target.value)} type="email" placeholder="seu@email.com"/>
+                  <input type="email" className="w-full border rounded-xl px-3 py-2" value={email} onChange={e=>setEmail(e.target.value)} placeholder="seu@email.com" />
                 </div>
                 <div>
-                  <label className="text-sm">Telefone (opcional)</label>
-                  <input className="w-full border rounded-xl px-3 py-2" value={tel} onChange={e=>setTel(e.target.value)} placeholder="(11) 90000-0000"/>
+                  <label className="text-sm">Telefone (obrigatório)</label>
+                  <input required className="w-full border rounded-xl px-3 py-2" value={tel} onChange={e=>setTel(e.target.value)} placeholder="(11) 90000-0000" />
                 </div>
+
+                {/* Campos da dupla (apenas quando 2/4) */}
+                {cotas === 2 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm">Nome do(a) parceiro(a)</label>
+                      <input className="w-full border rounded-xl px-3 py-2" value={parceiroNome} onChange={e=>setParceiroNome(e.target.value)} />
+                    </div>
+                    <div>
+                      <label className="text-sm">E-mail do(a) parceiro(a)</label>
+                      <input type="email" className="w-full border rounded-xl px-3 py-2" value={parceiroEmail} onChange={e=>setParceiroEmail(e.target.value)} />
+                    </div>
+                  </div>
+                )}
+
                 <div>
                   <label className="text-sm">Mensagem (opcional)</label>
-                  <textarea className="w-full border rounded-xl px-3 py-2" value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Escreva uma breve mensagem (opcional)"/>
+                  <textarea className="w-full border rounded-xl px-3 py-2" value={msg} onChange={e=>setMsg(e.target.value)} placeholder="Escreva uma breve mensagem (opcional)" />
                 </div>
 
                 {erro && <div className="text-sm text-red-600">{erro}</div>}
