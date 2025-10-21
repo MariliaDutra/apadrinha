@@ -221,6 +221,9 @@ export default function App() {
     <p className="mt-2 text-neutral-600">
       Quando todas as 4 cotas são preenchidas, a criança aparecerá como <strong>“Criança apadrinhada”</strong> — sinalizando que aquela criança já possui padrinhos suficientes.
     </p>
+      <p className="mt-2 text-neutral-600">
+      Esse ano todas as cestas serão compradas em peruíbe com o mesmo fornecedor.
+    </p>
  <p className="mt-2">
   Cada gesto conta. Cada cota é um passo rumo a um final de ano mais cheio de sorrisos.
 </p>
