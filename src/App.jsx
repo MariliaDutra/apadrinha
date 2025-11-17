@@ -193,6 +193,16 @@ export default function App() {
           <h1 className="text-xl font-semibold">Apadrinhe uma Criança</h1>
           <div className="text-sm text-neutral-600">Total por criança: 4 cotas</div>
         </div>
+        <section className="max-w-6xl mx-auto px-4 pt-6">
+  <a
+    href="http://cedemsp.com.br/link/cesta-apadrinhamento-baoba-2025"
+    target="_blank"
+    rel="noreferrer"
+    className="block w-full text-center bg-amber-400 text-black py-3 rounded-2xl font-medium shadow hover:bg-amber-500 transition"
+  >
+    🌾 Clique aqui para comprar a Cesta Básica do Kilombo Baobá
+  </a>
+</section>
       </header>
 
       {/* Explicação */}
